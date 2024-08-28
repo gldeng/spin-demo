@@ -35,7 +35,7 @@ async function verify_onchain({
     const result = await writeContract(config, {
         abi,
         address: GAME_CONTRACT_ADDRESS,
-        functionName: "settleProof",
+        functionName: "submitGame",
         args: [proof, verify_instance, aux, [instances]],
     });
     const transactionReceipt = waitForTransactionReceipt(config, {
