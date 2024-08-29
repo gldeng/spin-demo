@@ -6,17 +6,15 @@ import { Spin, SpinGameInitArgs } from "spin";
 import { config } from "./web3";
 import { readContract } from "wagmi/actions";
 import { TaskStatus } from "zkwasm-service-helper";
+import { GameState } from "./types";
+import { useSelector, useDispatch } from 'react-redux';
+import { setCurrentPosition, setTotalSteps } from './gameSlice';
 
 const GAME_CONTRACT_ADDRESS = import.meta.env.VITE_GAME_CONTRACT_ADDRESS;
 const ZK_USER_ADDRESS = import.meta.env.VITE_ZK_CLOUD_USER_ADDRESS;
 const ZK_USER_PRIVATE_KEY = import.meta.env.VITE_ZK_CLOUD_USER_PRIVATE_KEY;
 const ZK_IMAGE_MD5 = import.meta.env.VITE_ZK_CLOUD_IMAGE_MD5;
 const ZK_CLOUD_RPC_URL = import.meta.env.VITE_ZK_CLOUD_URL;
-
-interface GameState {
-    total_steps: bigint;
-    current_position: bigint;
-}
 
 /* This function is used to verify the proof on-chain */
 async function verify_onchain({
@@ -58,6 +56,10 @@ async function getOnchainGameStates() {
 let spin: Spin;
 
 function App() {
+
+    const gameState = useSelector((state) => state.game);
+    const dispatch = useDispatch();
+
     useEffect(() => {
         getOnchainGameStates().then(async (result): Promise<any> => {
             const total_steps = result[0];
@@ -66,8 +68,8 @@ function App() {
             console.log("total_steps = ", total_steps);
             console.log("current_position = ", current_position);
             setOnChainGameStates({
-                total_steps,
-                current_position,
+                total_steps: total_steps.toString(),
+                current_position: current_position.toString(),
             });
 
             spin = new Spin({
@@ -87,14 +89,14 @@ function App() {
         });
     }, []);
 
-    const [gameState, setGameState] = useState<GameState>({
-        total_steps: BigInt(0),
-        current_position: BigInt(0),
-    });
+    // const [gameState, setGameState] = useState<GameState>({
+    //     total_steps: BigInt(0),
+    //     current_position: BigInt(0),
+    // });
 
     const [onChainGameStates, setOnChainGameStates] = useState<GameState>({
-        total_steps: BigInt(0),
-        current_position: BigInt(0),
+        total_steps: '0',
+        current_position: '0',
     });
 
     const [moves, setMoves] = useState<bigint[]>([]);
@@ -106,10 +108,12 @@ function App() {
 
     const updateDisplay = () => {
         const newGameState = spin.getGameState();
-        setGameState({
-            total_steps: newGameState.total_steps,
-            current_position: newGameState.current_position,
-        });
+        dispatch(setCurrentPosition(newGameState.current_position.toString()));
+        dispatch(setTotalSteps(newGameState.total_steps.toString()));
+        // setGameState({
+        //     total_steps: newGameState.total_steps,
+        //     current_position: newGameState.current_position,
+        // });
         setMoves(spin.witness);
     };
 
@@ -133,8 +137,8 @@ function App() {
         const gameStates = await getOnchainGameStates();
 
         setOnChainGameStates({
-            total_steps: gameStates[0],
-            current_position: gameStates[1],
+            total_steps: gameStates[0].toString(),
+            current_position: gameStates[1].toString(),
         });
 
         await spin.reset();
