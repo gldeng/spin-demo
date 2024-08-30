@@ -1,6 +1,7 @@
 // src/app/store.js
 import { configureStore } from '@reduxjs/toolkit';
 import gameReducer from './gameSlice';
+import gameOnChainReducer from './gameOnChainSlice';
 
 BigInt.prototype.toJSON = function () {
     return this.toString();
@@ -14,6 +15,7 @@ const store = configureStore({
     },
     reducer: {
         game: gameReducer,
+        gameOnChain: gameOnChainReducer,
     },
 });
 

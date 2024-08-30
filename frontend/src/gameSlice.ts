@@ -1,8 +1,10 @@
 import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
-  total_steps: 0,
-  current_position: 0,
+  total_steps: '',
+  current_position: '',
+  onChainStateLoaded: false,
+  gameInitialized: false,
 };
 
 const gameSlice = createSlice({
@@ -15,9 +17,15 @@ const gameSlice = createSlice({
       setCurrentPosition: (state, action) => {
         state.current_position = action.payload;
       },
+      setOnChainStateLoaded: (state, action) => {
+        state.onChainStateLoaded = action.payload;
+      },
+      setGameInitialized: (state, action) => {
+        state.gameInitialized = action.payload;
+      },
     },
   });
   
 
-export const { setTotalSteps, setCurrentPosition } = gameSlice.actions;
+export const { setTotalSteps, setCurrentPosition, setOnChainStateLoaded, setGameInitialized } = gameSlice.actions;
 export default gameSlice.reducer;

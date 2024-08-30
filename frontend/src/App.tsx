@@ -8,7 +8,10 @@ import { readContract } from "wagmi/actions";
 import { TaskStatus } from "zkwasm-service-helper";
 import { GameState } from "./types";
 import { useSelector, useDispatch } from 'react-redux';
-import { setCurrentPosition, setTotalSteps } from './gameSlice';
+import { setCurrentPosition, setTotalSteps, setGameInitialized } from './gameSlice';
+import { setOnChainTotalSteps, setOnChainCurrentPosition } from './gameOnChainSlice';
+import { Button, Flex } from "antd";
+import { mockSubmitGame } from "./mockSubmit";
 
 const GAME_CONTRACT_ADDRESS = import.meta.env.VITE_GAME_CONTRACT_ADDRESS;
 const ZK_USER_ADDRESS = import.meta.env.VITE_ZK_CLOUD_USER_ADDRESS;
@@ -54,6 +57,7 @@ async function getOnchainGameStates() {
 }
 
 let spin: Spin;
+let aelf: any;
 
 function App() {
 
@@ -61,43 +65,43 @@ function App() {
     const dispatch = useDispatch();
 
     useEffect(() => {
-        getOnchainGameStates().then(async (result): Promise<any> => {
-            const total_steps = result[0];
-            const current_position = result[1];
+        if (!gameState.onChainStateLoaded || gameState.gameInitialized) {
+            return;
+        }
+        const total_steps = gameState.total_steps;
+        const current_position = gameState.current_position;
 
-            console.log("total_steps = ", total_steps);
-            console.log("current_position = ", current_position);
-            setOnChainGameStates({
-                total_steps: total_steps.toString(),
-                current_position: current_position.toString(),
-            });
+        console.log("total_steps = ", total_steps);
+        console.log("current_position = ", current_position);
+        // setOnChainGameStates({
+        //     total_steps: total_steps.toString(),
+        //     current_position: current_position.toString(),
+        // });
 
-            spin = new Spin({
-                cloudCredentials: {
-                    CLOUD_RPC_URL: ZK_CLOUD_RPC_URL,
-                    USER_ADDRESS: ZK_USER_ADDRESS,
-                    USER_PRIVATE_KEY: ZK_USER_PRIVATE_KEY,
-                    IMAGE_HASH: ZK_IMAGE_MD5,
-                },
-            });
-            spin.initialize_import().then(() => {
-                const arg = new SpinGameInitArgs(total_steps, current_position);
-                console.log("arg = ", arg);
-                spin.initialize_game(arg);
-                updateDisplay();
-            });
+        spin = new Spin({
+            cloudCredentials: {
+                CLOUD_RPC_URL: ZK_CLOUD_RPC_URL,
+                USER_ADDRESS: ZK_USER_ADDRESS,
+                USER_PRIVATE_KEY: ZK_USER_PRIVATE_KEY,
+                IMAGE_HASH: ZK_IMAGE_MD5,
+            },
         });
-    }, []);
+        dispatch(setGameInitialized(true));
+        console.log("initial total_steps = ", total_steps);
+        console.log("initial current_position = ", current_position);
+        spin.initialize_import().then(() => {
+            const arg = new SpinGameInitArgs(BigInt(total_steps), BigInt(current_position));
+            console.log("arg = ", arg);
+            spin.initialize_game(arg);
+            updateDisplay();
+        });
+    }, [gameState]);
 
     // const [gameState, setGameState] = useState<GameState>({
     //     total_steps: BigInt(0),
     //     current_position: BigInt(0),
     // });
-
-    const [onChainGameStates, setOnChainGameStates] = useState<GameState>({
-        total_steps: '0',
-        current_position: '0',
-    });
+    const onChainGameStates = useSelector((state) => state.gameOnChain);
 
     const [moves, setMoves] = useState<bigint[]>([]);
 
@@ -135,45 +139,70 @@ function App() {
         await new Promise((r) => setTimeout(r, 1000));
 
         const gameStates = await getOnchainGameStates();
-
-        setOnChainGameStates({
-            total_steps: gameStates[0].toString(),
-            current_position: gameStates[1].toString(),
-        });
+        dispatch(setOnChainTotalSteps(gameStates[0].toString()));
+        dispatch(setOnChainCurrentPosition(gameStates[1].toString()));
 
         await spin.reset();
         // awonGameInitReady(gameStates[0], gameStates[1]);
     };
 
+
+    const onConnectBtnClickHandler = async () => {
+        try {
+            // const rs = await bridge.instance.connect();
+            // console.log('onConnectBtnClickHandler', rs);
+            var wallet = await nightElfWallet.login();
+            console.log('wallet', wallet);
+            setIsConnected(true);
+        } catch (e: any) {
+            // message.error(e.message);
+        }
+    };
+
+    const onDisConnectBtnClickHandler = async () => {
+        // const rs = await bridge.instance.disConnect();
+        await nightElfWallet.logout();
+        setIsConnected(false);
+        // console.log('log after execute disConnectWallet', rs);
+    };
+
+    const [isConnected, setIsConnected] = useState(false);
+    const [isLocking, setIsLocking] = useState(false);
+
+    const lock = async () => {
+        setIsLocking(true);
+        // await bridge.instance.lock();
+        setIsLocking(false);
+    };
+
     return (
         <div className="App">
-            <header className="App-header">
-                <w3m-button />
-                <header>GamePlay</header>
-                <header>Number of Moves: {moves.length}</header>
-                <header>
-                    How to Play: this game let the player increase or decrease
-                    the position. The position ranges from 0-10. It keeps track
-                    of the total steps so far and current position. When
-                    submitted on-chain, the progresses are updated and recorded
-                    on-chain{" "}
-                </header>
-                <header>
-                    Game State:{" "}
-                    {JSON.stringify(gameState, (_, v) =>
-                        typeof v === "bigint" ? v.toString() : v
-                    )}
-                </header>
-                <header>
-                    OnChain Game State:{" "}
-                    {JSON.stringify(onChainGameStates, (_, v) =>
-                        typeof v === "bigint" ? v.toString() : v
-                    )}
-                </header>
-                <button onClick={onClick(BigInt(0))}>Decrement</button>
-                <button onClick={onClick(BigInt(1))}>Increment</button>
-            </header>
-            <button onClick={submitProof}>Submit</button>
+            <div>GamePlay</div>
+            <div>Number of Moves: {moves.length}</div>
+            <div>
+                How to Play: this game let the player increase or decrease
+                the position. The position ranges from 0-10. It keeps track
+                of the total steps so far and current position. When
+                submitted on-chain, the progresses are updated and recorded
+                on-chain{" "}
+            </div>
+
+            <div>
+                Game State:{" "}
+                {JSON.stringify(gameState, (_, v) =>
+                    typeof v === "bigint" ? v.toString() : v
+                )}
+            </div>
+            <div>
+                OnChain Game State:{" "}
+                {JSON.stringify(onChainGameStates, (_, v) =>
+                    typeof v === "bigint" ? v.toString() : v
+                )}
+            </div>
+            <Button onClick={onClick(BigInt(0))}>Decrement</Button>
+            <Button onClick={onClick(BigInt(1))}>Increment</Button>
+            <Button onClick={submitProof}>Submit</Button>
+            <Button onClick={mockSubmitGame}>Mock Submit</Button>
         </div>
     );
 }
