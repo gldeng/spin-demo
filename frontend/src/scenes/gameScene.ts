@@ -6,6 +6,8 @@ import { aelf, spin, GameStateOfNumberFormat, subGameInit, subMoved, gameStatus 
 import AElf from 'aelf-sdk';
 import { mockInput } from "../mockSubmit";
 
+const STEP_SIZE = 130.8;
+
 type ProofType = Awaited<ReturnType<typeof spin.generateProof>>;
 interface SubmitGameRequest {
     proof: string[];
@@ -44,7 +46,8 @@ export default class GameScene extends Phaser.Scene {
 
     initializeDisplay(data: GameStateOfNumberFormat) {
 
-        this.submitButton = this.add.sprite(920, 40, "submit");
+        this.submitButton = this.add.sprite(1280, 60, "submit");
+        this.submitButton.setScale(1.5);
         this.submitButton.setInteractive({ useHandCursor: true });
         this.submitButton.on('pointerdown', this.submitGame, this);
 
@@ -54,11 +57,12 @@ export default class GameScene extends Phaser.Scene {
                 fontFamily: 'Times New Roman',
                 fill: '#DEB887'
             });
-        this.marioImage = this.add.sprite(58 + 93 * data.current_position, 798, "mario");
+        this.marioImage = this.add.sprite(58 + STEP_SIZE * data.current_position, 870, "mario");
+        this.marioImage.setScale(0.7);
         this.marioText = this.add.text(
-            93 * data.current_position,
-            this.marioImage.y - 170,
-            '' + data.current_position,
+            STEP_SIZE * data.current_position,
+            this.marioImage.y - 135,
+            '  ' + data.current_position,
             {
                 fontSize: '48px',
                 fontFamily: 'Times New Roman',
@@ -71,7 +75,7 @@ export default class GameScene extends Phaser.Scene {
     create() {
         this.backgroundImage = this.add.sprite(0, 0, "background");
         this.backgroundImage.x = 512;
-        this.backgroundImage.y = 512;
+        this.backgroundImage.y = 540;
 
         var that = this;
         console.log("creating game")
@@ -112,9 +116,9 @@ export default class GameScene extends Phaser.Scene {
     }
 
     updateDisplay(data: GameStateOfNumberFormat) {
-        this.marioImage!.x = 58 + 93 * data.current_position;
-        this.marioText!.x = 93 * data.current_position;
-        this.marioText!.setText('' + data.current_position);
+        this.marioImage!.x = 58 + STEP_SIZE * data.current_position;
+        this.marioText!.x = STEP_SIZE * data.current_position;
+        this.marioText!.setText('  ' + data.current_position);
         this.stepsText!.setText('Steps: ' + data.total_steps);
     }
 

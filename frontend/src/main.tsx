@@ -6,7 +6,6 @@ import { Web3ModalProvider } from "./web3.tsx";
 import { Provider } from 'react-redux';
 import store from './store';
 import { AelfWeb3Provider } from "./web3aelf.tsx";
-import OnChain from "./OnChain.tsx";
 import Login from "./Login.tsx";
 
 
@@ -16,10 +15,6 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
       <Web3ModalProvider>
         <App />
       </Web3ModalProvider>
-      <OnChain /> 
-      {/* <AelfWeb3Provider>
-        <Login />
-      </AelfWeb3Provider> */}
     </Provider>
-  // </React.StrictMode>
+  //  </React.StrictMode>
 );
