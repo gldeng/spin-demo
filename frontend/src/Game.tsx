@@ -32,7 +32,7 @@ const Game = () => {
     };
   }, []);
 
-  return <div id="phaser-container"></div>;
+  return <div id="game-container"></div>;
 };
 
 export default Game;

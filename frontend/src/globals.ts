@@ -1,5 +1,6 @@
 import { Spin, SpinGameInitArgs } from "spin";
 import {Subject} from "rxjs";
+import AElf from 'aelf-sdk';
 
 const ZK_USER_ADDRESS = import.meta.env.VITE_ZK_CLOUD_USER_ADDRESS;
 const ZK_USER_PRIVATE_KEY = import.meta.env.VITE_ZK_CLOUD_USER_PRIVATE_KEY;
@@ -26,6 +27,5 @@ export interface GameStateOfNumberFormat {
 export const subMove = new Subject<number>();
 export const subGameInit = new Subject<GameStateOfNumberFormat>();
 export const subMoved = new Subject<number>();
-subGameInit.subscribe(()=>{
-    console.log('subGameInit');
-})
+
+export const aelf = new AElf(new AElf.providers.HttpProvider('http://localhost:8000'));
