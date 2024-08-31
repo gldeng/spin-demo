@@ -11,7 +11,7 @@ import Login from "./Login.tsx";
 
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
-  <React.StrictMode>
+  // <React.StrictMode>
     <Provider store={store}>
       <Web3ModalProvider>
         <App />
@@ -21,5 +21,5 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
         <Login />
       </AelfWeb3Provider> */}
     </Provider>
-  </React.StrictMode>
+  // </React.StrictMode>
 );

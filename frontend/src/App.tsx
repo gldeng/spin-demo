@@ -12,12 +12,10 @@ import { setCurrentPosition, setTotalSteps, setGameInitialized } from './gameSli
 import { setOnChainTotalSteps, setOnChainCurrentPosition } from './gameOnChainSlice';
 import { Button, Flex } from "antd";
 import { mockSubmitGame } from "./mockSubmit";
+import Game from "./Game";
+import { gameStatus, spin, subGameInit } from "./globals";
 
 const GAME_CONTRACT_ADDRESS = import.meta.env.VITE_GAME_CONTRACT_ADDRESS;
-const ZK_USER_ADDRESS = import.meta.env.VITE_ZK_CLOUD_USER_ADDRESS;
-const ZK_USER_PRIVATE_KEY = import.meta.env.VITE_ZK_CLOUD_USER_PRIVATE_KEY;
-const ZK_IMAGE_MD5 = import.meta.env.VITE_ZK_CLOUD_IMAGE_MD5;
-const ZK_CLOUD_RPC_URL = import.meta.env.VITE_ZK_CLOUD_URL;
 
 /* This function is used to verify the proof on-chain */
 async function verify_onchain({
@@ -56,7 +54,6 @@ async function getOnchainGameStates() {
     return result;
 }
 
-let spin: Spin;
 let aelf: any;
 
 function App() {
@@ -78,14 +75,6 @@ function App() {
         //     current_position: current_position.toString(),
         // });
 
-        spin = new Spin({
-            cloudCredentials: {
-                CLOUD_RPC_URL: ZK_CLOUD_RPC_URL,
-                USER_ADDRESS: ZK_USER_ADDRESS,
-                USER_PRIVATE_KEY: ZK_USER_PRIVATE_KEY,
-                IMAGE_HASH: ZK_IMAGE_MD5,
-            },
-        });
         dispatch(setGameInitialized(true));
         console.log("initial total_steps = ", total_steps);
         console.log("initial current_position = ", current_position);
@@ -93,6 +82,11 @@ function App() {
             const arg = new SpinGameInitArgs(BigInt(total_steps), BigInt(current_position));
             console.log("arg = ", arg);
             spin.initialize_game(arg);
+            subGameInit.next({
+                total_steps: Number(total_steps),
+                current_position: Number(current_position),
+            });
+            gameStatus.initialized = true;
             updateDisplay();
         });
     }, [gameState]);
@@ -177,7 +171,8 @@ function App() {
 
     return (
         <div className="App">
-            <div>GamePlay</div>
+            <Game></Game>
+            {/* <div>GamePlay</div>
             <div>Number of Moves: {moves.length}</div>
             <div>
                 How to Play: this game let the player increase or decrease
@@ -202,7 +197,7 @@ function App() {
             <Button onClick={onClick(BigInt(0))}>Decrement</Button>
             <Button onClick={onClick(BigInt(1))}>Increment</Button>
             <Button onClick={submitProof}>Submit</Button>
-            <Button onClick={mockSubmitGame}>Mock Submit</Button>
+            <Button onClick={mockSubmitGame}>Mock Submit</Button> */}
         </div>
     );
 }
