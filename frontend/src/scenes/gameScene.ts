@@ -1,6 +1,6 @@
 
 import backgroundImage from "../assets/background.png";
-import mario from "../assets/mario.gif";
+import mario from "../assets/mario.png";
 import { spin, GameStateOfNumberFormat, subGameInit, subMoved, gameStatus } from "../globals";
 
 export default class GameScene extends Phaser.Scene {
@@ -29,7 +29,7 @@ export default class GameScene extends Phaser.Scene {
         this.marioImage = this.add.sprite(58 + 93 * data.current_position, 798, "mario");
         this.marioText = this.add.text(
             93 * data.current_position,
-            this.marioImage.y - 100,
+            this.marioImage.y - 170,
             '' + data.current_position,
             {
                 fontSize: '48px',
