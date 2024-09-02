@@ -4,9 +4,8 @@ import GameScene from './scenes/gameScene';
 
 import { callViewMethod as callViewMethodOfUtils } from '@aelf-web-login/utils';
 import { GameState } from "./types";
-import { useDispatch } from 'react-redux';
-import { setCurrentPosition, setTotalSteps, setOnChainStateLoaded } from './gameSlice';
-import { setOnChainCurrentPosition, setOnChainTotalSteps } from './gameOnChainSlice';
+import { gameStatus, spin, subGameInit } from './globals';
+import { SpinGameInitArgs } from 'spin';
 
 
 async function getOnchainGameStates(): Promise<GameState> {
@@ -30,17 +29,21 @@ async function getOnchainGameStates(): Promise<GameState> {
 
 const Game = () => {
 
-  const dispatch = useDispatch();
-
   useEffect(() => {
       getOnchainGameStates().then(async (result): Promise<void> => {
           const total_steps = result.total_steps;
           const current_position = result.current_position;
-          dispatch(setOnChainTotalSteps(total_steps));
-          dispatch(setOnChainCurrentPosition(current_position));
-          dispatch(setTotalSteps(total_steps));
-          dispatch(setCurrentPosition(current_position));
-          dispatch(setOnChainStateLoaded(true));
+              
+          spin.initialize_import().then(() => {
+            const arg = new SpinGameInitArgs(BigInt(total_steps), BigInt(current_position));
+            console.log("arg = ", arg);
+            spin.initialize_game(arg);
+            subGameInit.next({
+                total_steps: Number(total_steps),
+                current_position: Number(current_position),
+            });
+            gameStatus.initialized = true;
+        });
       });
   }, []);
 
