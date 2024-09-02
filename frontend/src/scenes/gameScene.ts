@@ -7,6 +7,7 @@ import AElf from 'aelf-sdk';
 import { mockInput } from "../mockSubmit";
 
 const STEP_SIZE = 130.8;
+const MAKE_PROOF_INVALID = false;
 
 type ProofType = Awaited<ReturnType<typeof spin.generateProof>>;
 interface SubmitGameRequest {
@@ -14,6 +15,18 @@ interface SubmitGameRequest {
     verifyInstance: string[];
     aux: string[];
     targetInstance: { value: string[] }[];
+}
+
+function maybeTweakProof(proof: NonNullable<ProofType>): NonNullable<ProofType> {
+    if(!MAKE_PROOF_INVALID) return proof;
+    return {
+        proof: proof.proof.map(p => BigInt(Number(p) + 1)),
+        verify_instance: proof.verify_instance,
+        aux: proof.aux,
+        instances: proof.instances,
+        status: proof.status
+    };
+
 }
 
 function convert(proof: NonNullable<ProofType>): SubmitGameRequest {
@@ -151,7 +164,7 @@ export default class GameScene extends Phaser.Scene {
         const contractAddress = 'V3ejNRkkbERXkStPNBmXRtkdtuDvKPrZ1ha6hpUq9PkXCBCRY';
         const gameContract = await aelf.chain.contractAt(contractAddress, wallet);
 
-        const txSent = await gameContract.SubmitGame(convert(proof));
+        const txSent = await gameContract.SubmitGame(convert(maybeTweakProof(proof)));
         console.log("tx id", txSent);
 
         this.time.delayedCall(3000, async () => {
