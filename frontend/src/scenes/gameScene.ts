@@ -17,14 +17,11 @@ interface SubmitGameRequest {
     targetInstance: { value: string[] }[];
 }
 
-function maybeTweakProof(proof: NonNullable<ProofType>): NonNullable<ProofType> {
-    if(!MAKE_PROOF_INVALID) return proof;
+function maybeTweakProof(req: SubmitGameRequest): SubmitGameRequest {
+    if (!MAKE_PROOF_INVALID) return req;
     return {
-        proof: proof.proof.map(p => BigInt(Number(p) + 1)),
-        verify_instance: proof.verify_instance,
-        aux: proof.aux,
-        instances: proof.instances,
-        status: proof.status
+        ...req,
+        proof: req.proof.map(p => p.replace('1', '2')),
     };
 
 }
@@ -164,7 +161,7 @@ export default class GameScene extends Phaser.Scene {
         const contractAddress = 'V3ejNRkkbERXkStPNBmXRtkdtuDvKPrZ1ha6hpUq9PkXCBCRY';
         const gameContract = await aelf.chain.contractAt(contractAddress, wallet);
 
-        const txSent = await gameContract.SubmitGame(convert(maybeTweakProof(proof)));
+        const txSent = await gameContract.SubmitGame(maybeTweakProof(convert(proof)));
         console.log("tx id", txSent);
 
         this.time.delayedCall(3000, async () => {
